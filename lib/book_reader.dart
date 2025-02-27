@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+
+
 class FlipBookPage extends StatefulWidget {
   final String title; // Book title
   final String pdfPath; // PDF path
@@ -33,6 +35,7 @@ class _FlipBookPageState extends State<FlipBookPage> {
           ? const Center(child: Text("⚠️ Error loading PDF! Check assets path."))
           : SfPdfViewer.asset(
               widget.pdfPath,
+              pageLayoutMode: PdfPageLayoutMode.single,
               controller: _pdfViewerController,
               onDocumentLoadFailed: (details) {
                 print("ERROR: ${details.description}");
