@@ -1,0 +1,40 @@
+name: storybook_web
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  syncfusion_flutter_pdf: ^28.2.7
+  syncfusion_flutter_pdfviewer: ^28.2.7
+
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/madoosi.jpg
+    - assets/moowhan.jpg
+    - assets/chujai.jpg
+    - assets/mhoolek.jpg
+    - assets/lostandfound.jpg
+    - assets/nujit.jpg
+    - assets/madoosi.pdf
+    - assets/moowhan.pdf
+    - assets/chujai.pdf
+    - assets/mhoolek.pdf
+    - assets/lostandfound.pdf
+    - assets/nujit.pdf
+    - assets/laetae.jpg
+    - assets/laetae.pdf
