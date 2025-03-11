@@ -1,4 +1,4 @@
-name: storybook_web
+name: storybook_app
 description: "A new Flutter project."
 publish_to: 'none'
 
@@ -38,3 +38,5 @@ flutter:
     - assets/nujit.pdf
     - assets/laetae.jpg
     - assets/laetae.pdf
+    - assets/homnil.jpg
+    - assets/homnil.pdf
