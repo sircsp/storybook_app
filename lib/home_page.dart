@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'book_reader.dart';
-import 'game_menu_page.dart'; // เพิ่มหน้าเลือกเกม
+import 'game_menu_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -12,26 +12,8 @@ class HomePage extends StatelessWidget {
         title: const Text("Story Sprout"),
         backgroundColor: Colors.lightGreen[200],
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: SizedBox(
-              width: 200,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Search",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-            ),
-          ),
           IconButton(
-            icon: Icon(Icons.videogame_asset, size: 30, color: Colors.black54), // 🎮 ปุ่มเล่นเกม
+            icon: Icon(Icons.videogame_asset, size: 30, color: Colors.black54),
             onPressed: () {
               Navigator.push(
                 context,
@@ -52,12 +34,11 @@ class HomePage extends StatelessWidget {
         ],
       ),
       drawer: const AppDrawer(),
-      body: const BookGrid(),
+      body: const BookListView(),
     );
   }
 }
 
-// 🔹 Drawer Menu
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
@@ -66,7 +47,6 @@ class AppDrawer extends StatelessWidget {
     return Drawer(
       child: Column(
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             decoration: const BoxDecoration(color: Color(0xFFC3C3A3)),
@@ -92,8 +72,6 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-
-          // Menu Items
           ListTile(
             leading: const Icon(Icons.home, size: 26),
             title: const Text('หน้าแรก', style: TextStyle(fontSize: 18)),
@@ -112,7 +90,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('ที่บันทึกไว้', style: TextStyle(fontSize: 18)),
           ),
           ListTile(
-            leading: Icon(Icons.videogame_asset, size: 26, color: Colors.blue), // 🎮 เมนูเล่นเกม
+            leading: Icon(Icons.videogame_asset, size: 26, color: Colors.blue),
             title: Text('เล่นเกม', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.push(
@@ -127,105 +105,120 @@ class AppDrawer extends StatelessWidget {
   }
 }
 
-// 🔹 Book Grid (แสดงหนังสือ)
-class BookGrid extends StatelessWidget {
-  const BookGrid({super.key});
+class BookListView extends StatelessWidget {
+  const BookListView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> books = [
-      {"title": "มาดูสิ", "image": "assets/madoosi.jpg", "pdf": "assets/madoosi.pdf"},
-      {"title": "หมูหวานฟันผุ", "image": "assets/moowhan.jpg", "pdf": "assets/moowhan.pdf"},
-      {"title": "ชูใจชอบแปรงฟัน", "image": "assets/chujai.jpg", "pdf": "assets/chujai.pdf"},
-      {"title": "หมูเล็กไม่กินผัก", "image": "assets/mhoolek.jpg", "pdf": "assets/mhoolek.pdf"},
-      {"title": "ของหาย", "image": "assets/lostandfound.jpg", "pdf": "assets/lostandfound.pdf"},
-      {"title": "หนูจี๊ดติดจอ", "image": "assets/nujit.jpg", "pdf": "assets/nujit.pdf"},
-      {"title": "เละเทะ", "image": "assets/laetae.jpg", "pdf": "assets/laetae.pdf"},
-      {"title": "หอมนิลอยากมีเพื่อน", "image": "assets/homnil.jpg", "pdf": "assets/homnil.pdf"},
-    ];
+    Map<int, List<Map<String, String>>> categorizedBooks = {
+      3: [
+        {"title": "มาดูสิ", "image": "assets/madoosi.jpg", "pdf": "assets/madoosi.pdf"},
+        {"title": "หนูจี๊ดติดจอ", "image": "assets/nujit.jpg", "pdf": "assets/nujit.pdf"},
+      ],
+      4: [
+        {"title": "หมูหวานฟันผุ", "image": "assets/moowhan.jpg", "pdf": "assets/moowhan.pdf"},
+      ],
+      5: [
+        {"title": "ชูใจชอบแปรงฟัน", "image": "assets/chujai.jpg", "pdf": "assets/chujai.pdf"},
+      ],
+      6: [
+        {"title": "หมูเล็กไม่กินผัก", "image": "assets/mhoolek.jpg", "pdf": "assets/mhoolek.pdf"},
+      ],
+      7: [
+        {"title": "ของหาย", "image": "assets/lostandfound.jpg", "pdf": "assets/lostandfound.pdf"},
+      ],
+    };
 
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4, // 4 เล่มต่อแถว
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.65, // ✅ ปรับอัตราส่วนให้รองรับทุกปก
-        ),
-        itemCount: books.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FlipBookPage(
-                    title: books[index]["title"]!,
-                    pdfPath: books[index]["pdf"]!,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: categorizedBooks.entries.map((entry) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 190, 233, 238),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "เหมาะสำหรับเด็กอายุ ${entry.key} ขวบขึ้นไป",
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-              );
-            },
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 🔹 ใช้ FittedBox เพื่อให้รองรับทุกอัตราส่วน
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                      child: FittedBox(
-                        fit: BoxFit.fill, // ✅ ปรับให้ปกเต็มพื้นที่โดยไม่ถูกตัด
-                        child: Image.asset(
-                          books[index]["image"]!,
-                          width: 150, // ✅ กำหนดความกว้างมาตรฐาน
-                          height: 220, // ✅ กำหนดความสูงมาตรฐาน
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(0), // ✅ เอา padding ออก ให้แนบสนิทกับกรอบของหนังสือ
-                    child: Container(
-                      width: double.infinity, // ✅ ทำให้กล่องเต็มความกว้างของ Grid
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 226, 240, 198), // ✅ พื้นหลังสีอ่อนสบายตา
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(10), // ✅ ทำให้ขอบมนด้านล่าง
-                          bottomRight: Radius.circular(10),
-                        ),
-                        border: Border.all(color: const Color.fromARGB(255, 151, 236, 201), width: 1), // ✅ ขอบสีอ่อน
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromARGB(66, 151, 236, 201),
-                            offset: Offset(0, 2), // ✅ เงาล่างให้ดูมีมิติ
-                            blurRadius: 4,
+                const Divider(thickness: 2, height: 20, color: Colors.black26),
+                SizedBox(
+                  height: 270,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: entry.value.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FlipBookPage(
+                                  title: entry.value[index]["title"]!,
+                                  pdfPath: entry.value[index]["pdf"]!,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min, // ✅ ป้องกันการใช้พื้นที่เกินไป
+                              children: [
+                                Expanded( // ✅ ทำให้รูปไม่ดันขนาดของ Column
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                                    child: Image.asset(
+                                      entry.value[index]["image"]!,
+                                      width: 220,
+                                      height: 200,
+                                      fit: BoxFit.cover, // ✅ ปรับให้ภาพพอดีกับขนาดที่กำหนด
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 220,
+                                  decoration: const BoxDecoration(
+                                    color: Color.fromARGB(255, 226, 240, 198),
+                                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    entry.value[index]["title"]!,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 6), // ✅ ให้กล่องไม่สูงเกินไป
-                      alignment: Alignment.center, // ✅ จัดให้อยู่ตรงกลางพอดี
-                      child: Text(
-                        books[index]["title"]!,
-                        style: const TextStyle(
-                          fontSize: 20, // ✅ ปรับขนาดให้เหมาะสม
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87, // ✅ สีตัวหนังสือชัดขึ้น
                         ),
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
