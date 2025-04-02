@@ -3,7 +3,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'quiz_page.dart';
 import 'package:storybook_app/models/question.dart';
 import 'package:storybook_app/services/api_service.dart';
-
+import 'dart:io';
 
 class FlipBookPage extends StatefulWidget {
   final int bookId;
@@ -31,10 +31,12 @@ class _FlipBookPageState extends State<FlipBookPage> {
   List<Question> allQuestions = [];
 
   @override
+  
   void initState() {
     super.initState();
     fetchQuestions();
     _loadTotalPages();
+    print("📘 Slug ที่ใช้โหลด totalPages: ${widget.bookSlug}");
   }
   Future<void> _loadTotalPages() async {
     try {
@@ -64,8 +66,10 @@ class _FlipBookPageState extends State<FlipBookPage> {
     return allQuestions.any((q) => q.pageNumber == currentPage);
   }
 
-  String fixLocalhost(String url) {
-  return url.replaceAll("127.0.0.1", "10.0.2.2");
+  String getImageUrl(String slug, int pageNumber) {
+    final ip = Platform.isAndroid ? '10.0.2.2' : '172.20.10.3'; // เปลี่ยน IP ตามที่เครื่องคุณได้จาก `ipconfig`
+    final paddedPage = pageNumber.toString().padLeft(2, '0');
+    return 'http://$ip:8000/static/storybook_pages/$slug/page_$paddedPage.jpg';
 }
 
  @override
@@ -88,12 +92,13 @@ class _FlipBookPageState extends State<FlipBookPage> {
 
   // ---------- หน้าเดียว ----------
 Widget _buildSinglePageView() {
-  final imageUrl =
-      'http://127.0.0.1:8000/static/storybook_pages/${widget.bookSlug}/page_${currentPage.toString().padLeft(2, '0')}.jpg';
+  final imageUrl = getImageUrl(widget.bookSlug, currentPage);
+
+  print("👉 เปิดหนังสือ: ${widget.title} | ID: ${widget.bookId} | SLUG: ${widget.bookSlug}");
 
   return Stack(
     children: [
-      Center(child: Image.network(fixLocalhost(imageUrl), fit: BoxFit.contain)),
+      Center(child: Image.network(imageUrl, fit: BoxFit.contain)),
       _buildNavigationButtons(single: true),
       if (hasQuizForCurrentPage()) _buildQuizButton(),
     ],
@@ -102,18 +107,19 @@ Widget _buildSinglePageView() {
 
   // ---------- หน้าคู่ ----------
 Widget _buildDoublePageView() {
-  final leftUrl =
-      'http://127.0.0.1:8000/static/storybook_pages/${widget.bookSlug}/page_${currentPage.toString().padLeft(2, '0')}.jpg';
-  final rightUrl =
-      'http://127.0.0.1:8000/static/storybook_pages/${widget.bookSlug}/page_${(currentPage + 1).toString().padLeft(2, '0')}.jpg';
+  final leftUrl = getImageUrl(widget.bookSlug, currentPage);
+  final rightUrl = getImageUrl(widget.bookSlug, currentPage + 1);
+
+  print("📖 doublePage: ${widget.doublePage}");
+  
 
   return Stack(
     children: [
       Row(
         children: [
-          Expanded(child: Image.network(fixLocalhost(leftUrl), fit: BoxFit.contain)),
+          Expanded(child: Image.network(leftUrl, fit: BoxFit.contain)),
           if (currentPage + 1 <= totalPages)
-            Expanded(child: Image.network(fixLocalhost(rightUrl), fit: BoxFit.contain)),
+            Expanded(child: Image.network(rightUrl, fit: BoxFit.contain)),
         ],
       ),
       _buildNavigationButtons(single: false),
