@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'book_reader.dart';
 import 'game_menu_page.dart';
+import 'package:storybook_app/models/question.dart';
+import 'package:storybook_app/services/api_service.dart';
+import 'package:storybook_app/models/book.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -105,34 +108,57 @@ class AppDrawer extends StatelessWidget {
   }
 }
 
-class BookListView extends StatelessWidget {
+class BookListView extends StatefulWidget {
   const BookListView({super.key});
+   @override
+  State<BookListView> createState() => _BookListViewState();
+}
+
+class _BookListViewState extends State<BookListView> {
+  Map<String, List<Book>> groupedBooks = {};
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadBooks();
+  }
+
+  Future<void> loadBooks() async {
+    final books = await ApiService.getBooks();
+    Map<String, List<Book>> temp = {
+      "3 ปีขึ้นไป": [],
+      "4–5 ปีขึ้นไป": [],
+      "6–7": [],
+    };
+
+    for (var book in books) {
+      if (book.ageGroup == 3) {
+        temp["3 ปีขึ้นไป"]!.add(book);
+      } else if (book.ageGroup == 4 || book.ageGroup == 5) {
+        temp["4–5 ปีขึ้นไป"]!.add(book);
+      } else if (book.ageGroup == 6 || book.ageGroup == 7) {
+        temp["6–7"]!.add(book);
+      }
+    }
+
+    setState(() {
+      groupedBooks = temp;
+      isLoading = false;
+    });
+  
+  }
 
   @override
   Widget build(BuildContext context) {
-    Map<int, List<Map<String, String>>> categorizedBooks = {
-      3: [
-        {"title": "มาดูสิ", "image": "assets/madoosi.jpg", "pdf": "assets/madoosi.pdf"},
-        {"title": "หนูจี๊ดติดจอ", "image": "assets/nujit.jpg", "pdf": "assets/nujit.pdf"},
-      ],
-      4: [
-        {"title": "หมูหวานฟันผุ", "image": "assets/moowhan.jpg", "pdf": "assets/moowhan.pdf"},
-      ],
-      5: [
-        {"title": "ชูใจชอบแปรงฟัน", "image": "assets/chujai.jpg", "pdf": "assets/chujai.pdf"},
-      ],
-      6: [
-        {"title": "หมูเล็กไม่กินผัก", "image": "assets/mhoolek.jpg", "pdf": "assets/mhoolek.pdf"},
-      ],
-      7: [
-        {"title": "ของหาย", "image": "assets/lostandfound.jpg", "pdf": "assets/lostandfound.pdf"},
-      ],
-    };
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: categorizedBooks.entries.map((entry) {
+        children: groupedBooks.entries.map((entry) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             child: Column(
@@ -145,7 +171,7 @@ class BookListView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    "เหมาะสำหรับเด็กอายุ ${entry.key} ขวบขึ้นไป",
+                    "เหมาะสำหรับเด็กอายุ ${entry.key}  ",
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -156,16 +182,22 @@ class BookListView extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     itemCount: entry.value.length,
                     itemBuilder: (context, index) {
+                      final book = entry.value[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: GestureDetector(
                           onTap: () {
+                            print("👉 เปิดหนังสือ: ${book.title} | ID: ${book.id}");
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => FlipBookPage(
-                                  title: entry.value[index]["title"]!,
-                                  pdfPath: entry.value[index]["pdf"]!,
+                                  bookId: book.id,
+                                  title: book.title,
+                                  pdfPath: book.pdfFile,
+                                  bookSlug: book.bookSlug,
+                                  doublePage: book.doublePage,
                                 ),
                               ),
                             );
@@ -179,8 +211,8 @@ class BookListView extends StatelessWidget {
                                 Expanded( // ✅ ทำให้รูปไม่ดันขนาดของ Column
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                                    child: Image.asset(
-                                      entry.value[index]["image"]!,
+                                    child: Image.network(
+                                      book.coverImage,
                                       width: 220,
                                       height: 200,
                                       fit: BoxFit.cover, // ✅ ปรับให้ภาพพอดีกับขนาดที่กำหนด
@@ -195,7 +227,7 @@ class BookListView extends StatelessWidget {
                                   ),
                                   padding: const EdgeInsets.all(8),
                                   child: Text(
-                                    entry.value[index]["title"]!,
+                                    book.title,
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,

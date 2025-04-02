@@ -26,23 +26,7 @@ class GameMenuPage extends StatelessWidget {
                 );
               },
             ),
-            _buildGameCard(
-              context,
-              title: "เกมควิซ",
-              icon: Icons.quiz,
-              color: Colors.green,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QuizPage(
-                      bookTitle: "เกมทั่วไป", // ✅ ใช้ค่าเริ่มต้นสำหรับเกมจากเมนู
-                      pageNumber: 0,         // ✅ ใช้ค่าเริ่มต้น
-                    ),
-                  ),
-                );
-              },
-            ),
+            
           ],
         ),
       ),

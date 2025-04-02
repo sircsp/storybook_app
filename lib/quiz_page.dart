@@ -1,60 +1,82 @@
-import 'package:flutter/material.dart';
-import 'questions_data.dart'; // ✅ Import คำถามมาใช้
+import 'package:flutter/material.dart'; 
+import 'package:storybook_app/models/question.dart';
+import 'package:storybook_app/services/api_service.dart';
 
 class QuizPage extends StatefulWidget {
+  final int bookId;
   final String bookTitle;
   final int pageNumber;
+  final bool doublePage;
 
-  QuizPage({required this.bookTitle, required this.pageNumber});
+  QuizPage({
+    required this.bookId,
+    required this.bookTitle,
+    required this.pageNumber,
+    this.doublePage = false
+  });
+
 
   @override
   _QuizPageState createState() => _QuizPageState();
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Question> allQuestions = [];
+  List<Question> questionsForPage = [];
   int currentQuestionIndex = 0;
   int score = 0;
   bool isAnswerSelected = false;
-  List<Map<String, dynamic>> questions = [];
+  bool isLoading = true;
 
   @override
   void initState() {
-    super.initState();
+  super.initState();
+  print("📥 Loading questions for bookId=${widget.bookId}, page=${widget.pageNumber}");
+  loadQuestionsFromBackend();
+}
     
-    if (widget.bookTitle == "เกมทั่วไป") {
-      // ✅ ถ้ามาจากเมนูเกม → ใช้คำถามทั่วไป
-      questions = [
-        {
-          "question": "สัตว์ชนิดใดร้อง เมี้ยว เมี้ยว?",
-          "options": ["สุนัข", "แมว", "ช้าง", "นก"],
-          "answerIndex": 1
-        },
-        {
-          "question": "สีอะไรคือสีของท้องฟ้า?",
-          "options": ["แดง", "เหลือง", "น้ำเงิน", "เขียว"],
-          "answerIndex": 2
-        },
-      ];
-    } else {
-      // ✅ ถ้ามาจาก FlipBookPage → โหลดคำถามของหนังสือ
-      questions = bookQuestions[widget.bookTitle]?[widget.pageNumber] ?? [];
-    }
+    
+
+ void loadQuestionsFromBackend() async {
+  try {
+    final questions = await ApiService.fetchQuestionsByBookId(widget.bookId);
+    print("✅ ได้คำถามทั้งหมด: ${questions.length}");
+
+    setState(() {
+      allQuestions = questions;
+      questionsForPage = widget.doublePage
+          ? allQuestions.where((q) =>
+              q.pageNumber == widget.pageNumber ||
+              q.pageNumber == widget.pageNumber + 1).toList()
+          : allQuestions.where((q) => q.pageNumber == widget.pageNumber).toList();
+
+      print("📄 หน้านี้มีคำถาม: ${questionsForPage.length}");
+      isLoading = false;
+    });
+  } catch (e) {
+    print("❌ Error loading questions: $e");
+    setState(() {
+      isLoading = false;
+    });
   }
+}
 
   void checkAnswer(int selectedIndex) {
     if (isAnswerSelected) return;
+
+    final currentQuestion = questionsForPage[currentQuestionIndex];
 
     setState(() {
       isAnswerSelected = true;
     });
 
-    if (questions[currentQuestionIndex]["type"] == "choice" &&
-        selectedIndex == questions[currentQuestionIndex]["answerIndex"]) {
-      score++;
-    }
+    if (currentQuestion.type == 'choice' &&
+      selectedIndex == currentQuestion.answerIndex) {
+    score++;
+  }
 
     Future.delayed(Duration(seconds: 1), () {
-      if (currentQuestionIndex < questions.length - 1) {
+      if (currentQuestionIndex < questionsForPage.length - 1) {
         setState(() {
           currentQuestionIndex++;
           isAnswerSelected = false;
@@ -64,7 +86,7 @@ class _QuizPageState extends State<QuizPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text("จบเกม!"),
-            content: Text("คุณได้คะแนน $score/${questions.length}"),
+            content: Text("คุณได้คะแนน $score/${questionsForPage.length}"),
             actions: [
               TextButton(
                 onPressed: () {
@@ -83,15 +105,27 @@ class _QuizPageState extends State<QuizPage> {
       }
     });
   }
+  int _countScorableQuestions() {
+  return questionsForPage.where((q) => q.type == 'choice').length;
+}
 
   @override
   Widget build(BuildContext context) {
-    if (questions.isEmpty) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text("โหลดคำถาม...")),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (questionsForPage.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text("เกมควิซ")),
         body: Center(child: Text("ไม่มีคำถามสำหรับหน้านี้")),
       );
     }
+
+    final currentQuestion = questionsForPage[currentQuestionIndex];
 
     return Scaffold(
       appBar: AppBar(title: Text("เกมควิซ")),
@@ -100,15 +134,15 @@ class _QuizPageState extends State<QuizPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("คำถามที่ ${currentQuestionIndex + 1}/${questions.length}",
+            Text("คำถามที่ ${currentQuestionIndex + 1}/${questionsForPage.length}",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Text(questions[currentQuestionIndex]["question"], style: TextStyle(fontSize: 20)),
+            Text(currentQuestion.question, style: TextStyle(fontSize: 20)),
             SizedBox(height: 20),
-            ...List.generate(questions[currentQuestionIndex]["options"].length, (index) {
+            ...List.generate(currentQuestion.options.length, (index) {
               return ElevatedButton(
                 onPressed: isAnswerSelected ? null : () => checkAnswer(index),
-                child: Text(questions[currentQuestionIndex]["options"][index]),
+                child: Text(currentQuestion.options[index]),
               );
             }),
           ],
