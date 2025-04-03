@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'quiz_page.dart';
 import 'package:storybook_app/models/question.dart';
 import 'package:storybook_app/services/api_service.dart';
 import 'dart:io';
+import 'package:lottie/lottie.dart';
+import 'package:audioplayers/audioplayers.dart';
+
 
 class FlipBookPage extends StatefulWidget {
   final int bookId;
@@ -66,12 +68,14 @@ class _FlipBookPageState extends State<FlipBookPage> {
     return allQuestions.any((q) => q.pageNumber == currentPage);
   }
 
-  String getImageUrl(String slug, int pageNumber) {
-    final ip = Platform.isAndroid ? '10.0.2.2' : '172.20.10.3'; // เปลี่ยน IP ตามที่เครื่องคุณได้จาก `ipconfig`
-    final paddedPage = pageNumber.toString().padLeft(2, '0');
-    return 'http://$ip:8000/static/storybook_pages/$slug/page_$paddedPage.jpg';
-}
+String getImageUrl(String slug, int page) {
+  final formattedPage = page.toString().padLeft(2, '0');
+  final host = Platform.isAndroid || Platform.isIOS
+      ? 'http://172.20.10.3:8000'  // IP ของเครื่องรัน Django
+      : 'http://10.0.2.2:8000';    // สำหรับ emulator
 
+  return '$host/static/storybook_pages/$slug/page_$formattedPage.jpg';
+}
  @override
   Widget build(BuildContext context) {
     if (totalPages == 0) {
@@ -95,6 +99,7 @@ Widget _buildSinglePageView() {
   final imageUrl = getImageUrl(widget.bookSlug, currentPage);
 
   print("👉 เปิดหนังสือ: ${widget.title} | ID: ${widget.bookId} | SLUG: ${widget.bookSlug}");
+  print("🖼️ imageUrl = $imageUrl");
 
   return Stack(
     children: [
@@ -110,16 +115,40 @@ Widget _buildDoublePageView() {
   final leftUrl = getImageUrl(widget.bookSlug, currentPage);
   final rightUrl = getImageUrl(widget.bookSlug, currentPage + 1);
 
-  print("📖 doublePage: ${widget.doublePage}");
-  
+  // ✅ เงื่อนไขหน้าแรก แสดงหน้าเดียว
+  if (currentPage == 1) {
+    return Stack(
+      children: [
+        Center(child: Image.network(leftUrl, fit: BoxFit.contain)),
+        _buildNavigationButtons(single: true),
+        if (hasQuizForCurrentPage()) _buildQuizButton(),
+      ],
+    );
+  }
 
+  // ✅ หน้าคู่ ตั้งแต่หน้า 2-3 เป็นต้นไป
   return Stack(
     children: [
       Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(child: Image.network(leftUrl, fit: BoxFit.contain)),
+          Flexible(
+            child: ClipRect(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 0.5), // ✅ ลดช่องว่างตรงกลางให้ชิด
+                child: Image.network(leftUrl, fit: BoxFit.contain),
+              ),
+            ),
+          ),
           if (currentPage + 1 <= totalPages)
-            Expanded(child: Image.network(rightUrl, fit: BoxFit.contain)),
+            Flexible(
+              child: ClipRect(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 0.5),
+                  child: Image.network(rightUrl, fit: BoxFit.contain),
+                ),
+              ),
+            ),
         ],
       ),
       _buildNavigationButtons(single: false),
@@ -127,7 +156,6 @@ Widget _buildDoublePageView() {
     ],
   );
 }
-
   Widget _buildNavigationButtons({required bool single}) {
     return Stack(
       children: [
@@ -167,49 +195,67 @@ Widget _buildDoublePageView() {
 
 
 
-  // ---------- ปุ่ม Quiz ----------
-  Widget _buildQuizButton() {
-    return Positioned(
-      top: 20,
-      right: 20,
-      child: GestureDetector(
-        onTap: () {
-          print("📤 เปิด QuizPage | bookId=${widget.bookId}, page=$currentPage");
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => QuizPage(
-                bookId: widget.bookId,
-                bookTitle: widget.title,
-                pageNumber: currentPage,
-                doublePage: widget.doublePage,
-              ),
+ // ---------- ปุ่ม Quiz ----------
+Widget _buildQuizButton() {
+  return Positioned(
+    top: 20,
+    right: 20,
+    child: GestureDetector(
+      onTap: () {
+        print("📤 เปิด QuizPage | bookId=${widget.bookId}, page=$currentPage");
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => QuizPage(
+              bookId: widget.bookId,
+              bookTitle: widget.title,
+              pageNumber: currentPage,
+              doublePage: widget.doublePage,
             ),
-          );
-        },
-        child: Container(
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.7),
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
           ),
-          child: Icon(Icons.quiz, size: 30, color: Colors.purple),
-        ),
+        );
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Lottie.asset('assets/animations/question_popup.json',
+            width: 80,
+            height: 80,
+            repeat: true,
+          ),
+         /* Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.purple.withOpacity(0.5),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                  offset: Offset(0, 4),
+                )
+              ],
+            ),
+            child: Icon(Icons.quiz, size: 30, color: Colors.deepPurple),
+          ), */
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildNavButton(IconData icon) {
     return Container(
-      width: 70,
-      height: 70,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
         color: Colors.purple.shade200,
         shape: BoxShape.circle,
         boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
       ),
-      child: Icon(icon, size: 40, color: Colors.white),
+      child: Icon(icon, size: 28, color: Colors.white),
     );
   }
 }

@@ -4,6 +4,8 @@ import 'game_menu_page.dart';
 import 'package:storybook_app/models/question.dart';
 import 'package:storybook_app/services/api_service.dart';
 import 'package:storybook_app/models/book.dart';
+import 'package:lottie/lottie.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -129,7 +131,7 @@ class _BookListViewState extends State<BookListView> {
     Map<String, List<Book>> temp = {
       "3 ปีขึ้นไป": [],
       "4–5 ปีขึ้นไป": [],
-      "6–7": [],
+      "6–7 ปี": [],
     };
 
     for (var book in books) {
@@ -138,7 +140,7 @@ class _BookListViewState extends State<BookListView> {
       } else if (book.ageGroup == 4 || book.ageGroup == 5) {
         temp["4–5 ปีขึ้นไป"]!.add(book);
       } else if (book.ageGroup == 6 || book.ageGroup == 7) {
-        temp["6–7"]!.add(book);
+        temp["6–7 ปี"]!.add(book);
       }
     }
 

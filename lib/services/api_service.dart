@@ -8,14 +8,15 @@ class ApiService {
   static String getBaseUrl() {
     // ตรวจ platform แล้วเลือก IP ที่ถูกต้อง
     if (Platform.isAndroid || Platform.isIOS) {
-      return 'http://172.20.10.3:8000/api'; // <== IP ของ Mac
-    } else {
+       return 'http://172.20.10.3:8000/api'; // <== IP ของ Mac
+   } else {
       return 'http://10.0.2.2:8000/api'; // สำหรับ emulator
+      // return 'http://192.168.43.45:8000/api';
     }
   }
 
   static Future<List<Book>> getBooks() async {
-    final url = '${getBaseUrl()}/books/';
+    final url = Uri.parse('${getBaseUrl()}/books/');
     print("Requesting books from: $url");
 
     final response = await http.get(Uri.parse('${getBaseUrl()}/books/'));

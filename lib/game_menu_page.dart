@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'memory_game_page.dart';
 import 'quiz_page.dart';
+import 'package:lottie/lottie.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class GameMenuPage extends StatelessWidget {
   @override
