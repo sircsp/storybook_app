@@ -193,8 +193,16 @@ Widget _buildDoublePageView() {
     );
   }
 
+String? getImageAssetForQuiz(int bookId, int pageNumber) {
+  final Map<String, String> quizImageAssets = {
+    '4_4': 'assets/konghai04.png', // ✅ เล่ม 4 หน้า 4
+    '4_6': 'assets/konghai_page6.png', // ✅ ถ้าอยากใส่หลายหน้า
+    // เพิ่มได้ตามต้องการ
+  };
 
-
+  return quizImageAssets['${bookId}_$pageNumber'];
+}
+ 
  // ---------- ปุ่ม Quiz ----------
 Widget _buildQuizButton() {
   return Positioned(
@@ -211,6 +219,7 @@ Widget _buildQuizButton() {
               bookTitle: widget.title,
               pageNumber: currentPage,
               doublePage: widget.doublePage,
+              imageAssetPath: getImageAssetForQuiz(widget.bookId, currentPage),
             ),
           ),
         );

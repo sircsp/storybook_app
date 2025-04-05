@@ -129,18 +129,18 @@ class _BookListViewState extends State<BookListView> {
   Future<void> loadBooks() async {
     final books = await ApiService.getBooks();
     Map<String, List<Book>> temp = {
-      "3 ปีขึ้นไป": [],
-      "4–5 ปีขึ้นไป": [],
-      "6–7 ปี": [],
+      "3 ขวบขึ้นไป": [],
+      "4–5 ขวบขึ้นไป": [],
+      "6–7 ขวบ": [],
     };
 
     for (var book in books) {
       if (book.ageGroup == 3) {
-        temp["3 ปีขึ้นไป"]!.add(book);
+        temp["3 ขวบขึ้นไป"]!.add(book);
       } else if (book.ageGroup == 4 || book.ageGroup == 5) {
-        temp["4–5 ปีขึ้นไป"]!.add(book);
+        temp["4–5 ขวบขึ้นไป"]!.add(book);
       } else if (book.ageGroup == 6 || book.ageGroup == 7) {
-        temp["6–7 ปี"]!.add(book);
+        temp["6–7 ขวบ"]!.add(book);
       }
     }
 
@@ -169,7 +169,7 @@ class _BookListViewState extends State<BookListView> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 190, 233, 238),
+                    color: const Color.fromARGB(255, 255, 153, 230),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -179,7 +179,7 @@ class _BookListViewState extends State<BookListView> {
                 ),
                 const Divider(thickness: 2, height: 20, color: Colors.black26),
                 SizedBox(
-                  height: 270,
+                  height: 250,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: entry.value.length,
